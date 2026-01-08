@@ -1,10 +1,27 @@
 const { readCampaignsFromCsv } = require("./csv");
-const { generateCampaignMessage, describePerson } = require("./logic");
+const {
+  generateCampaignMessageWH,
+  generateCampaignMessageTEST,
+  generateCampaignMessageALERT,
+  describePerson,
+} = require("./logic");
+
+const mode = (process.argv[2] || "wh").toLowerCase();
+
+let generator;
+
+if (mode === "alert") {
+  generator = generateCampaignMessageALERT;
+} else if (mode === "test") {
+  generator = generateCampaignMessageTEST;
+} else {
+  generator = generateCampaignMessageWH;
+}
 
 const campaigns = readCampaignsFromCsv("./report.csv");
 
 const messages = campaigns
-  .map(generateCampaignMessage)
+  .map(generator)
   .filter((message) => message != null);
 
 for (const message of messages) {

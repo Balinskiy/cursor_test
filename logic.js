@@ -16,42 +16,69 @@ function isAdult(age) {
     return isAdult(age) ? adultMessage : notAdultMessage;
   }
   
-  function generateCampaignMessage(campaign) {
+  function generateCampaignMessageWH(campaign) {
     if (!campaign) return null;
+    if (campaign.status !== "active") return null;
   
-    const status = String(campaign.status ?? "").toLowerCase().trim();
-    const name = String(campaign.name ?? "").trim();
-    const channel = String(campaign.channel ?? "").trim();
-  
-    const spend = Number.isFinite(campaign.spend) ? campaign.spend : 0;
-    const conversions = Number.isFinite(campaign.conversions) ? campaign.conversions : 0;
-    const cpaTarget = Number.isFinite(campaign.cpaTarget) ? campaign.cpaTarget : NaN;
+    const spend = campaign.spend;
+    const conversions = campaign.conversions;
+    const target = campaign.cpaTarget;
   
     const cpa = conversions > 0 ? spend / conversions : Infinity;
   
-    const formatNum = (n) => (Number.isFinite(n) ? n.toFixed(2) : "n/a");
-    const targetText = Number.isFinite(cpaTarget) ? cpaTarget : "n/a";
-  
-    if (status === "paused") {
-      return `[INFO] ${name} ${channel} paused spend ${formatNum(spend)} conv ${conversions}`;
+    if (!Number.isFinite(target)) {
+      return `[WARN] ${campaign.name} ${campaign.channel} CPA ${cpa.toFixed(2)} target n/a conv ${conversions}`;
     }
   
-    if (status !== "active") return null;
-  
-    if (!Number.isFinite(cpaTarget)) {
-      return `[WARN] ${name} ${channel} CPA ${formatNum(cpa)} target n/a conv ${conversions}`;
+    if (cpa <= target) {
+      return `[OK] ${campaign.name} ${campaign.channel} CPA ${cpa.toFixed(2)} target ${target} conv ${conversions}`;
     }
   
-    const ok = cpa <= cpaTarget;
-    const warning = !ok && cpa <= cpaTarget * 1.2;
-    const level = ok ? "OK" : warning ? "WARN" : "DANGER";
+    if (cpa <= target * 1.2) {
+      return `[WARN] ${campaign.name} ${campaign.channel} CPA ${cpa.toFixed(2)} target ${target} conv ${conversions}`;
+    }
   
-    return `[${level}] ${name} ${channel} CPA ${formatNum(cpa)} target ${targetText} conv ${conversions}`;
+    return `[DANGER] ${campaign.name} ${campaign.channel} CPA ${cpa.toFixed(2)} target ${target} conv ${conversions}`;
   }
+  
+  function generateCampaignMessageTEST(campaign) {
+    if (!campaign) return null;
+  
+    if (campaign.status === "paused") {
+      return `[INFO] ${campaign.name} ${campaign.channel} paused spend ${campaign.spend.toFixed(2)} conv ${campaign.conversions}`;
+    }
+  
+    return generateCampaignMessageWH(campaign);
+  }
+  
+  function generateCampaignMessageALERT(campaign) {
+    if (!campaign) return null;
+    if (campaign.status !== "active") return null;
+  
+    const spend = campaign.spend;
+    const conversions = campaign.conversions;
+    const target = campaign.cpaTarget;
+  
+    const cpa = conversions > 0 ? spend / conversions : Infinity;
+  
+    if (Number.isFinite(target) && cpa <= target) return null;
+  
+    if (!Number.isFinite(target)) {
+      return `[WARN] ${campaign.name} ${campaign.channel} CPA ${cpa.toFixed(2)} target n/a conv ${conversions}`;
+    }
+  
+    if (cpa <= target * 1.2) {
+      return `[WARN] ${campaign.name} ${campaign.channel} CPA ${cpa.toFixed(2)} target ${target} conv ${conversions}`;
+    }
+  
+    return `[DANGER] ${campaign.name} ${campaign.channel} CPA ${cpa.toFixed(2)} target ${target} conv ${conversions}`;
+  }  
   
   module.exports = {
     isAdult,
     describePerson,
-    generateCampaignMessage,
+    generateCampaignMessageWH,
+    generateCampaignMessageTEST,
+    generateCampaignMessageALERT,
   };
   
