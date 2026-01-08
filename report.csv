@@ -1,0 +1,5 @@
+name,channel,status,spend,conversions,cpaTarget
+Search_US,Search,active,120,4,30
+Display_FR,GDN,paused,50,0,40
+YouTube_DE,YouTube,active,200,3,50
+InApp_ES,InApp,active,60,1,40
